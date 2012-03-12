@@ -1,5 +1,3 @@
-from nipype.utils.config import config
-config.enable_debug_mode()
 import nipype.interfaces.fsl as fsl         # fsl
 import nipype.algorithms.rapidart as ra     # rapid artifact detection
 from nipype.interfaces.nipy.preprocess import FmriRealign4d
@@ -7,11 +5,8 @@ from nipype.workflows.smri.freesurfer.utils import create_getmask_flow
 from nipype.workflows.fmri.fsl import create_susan_smooth
 import nipype.pipeline.engine as pe
 import nipype.interfaces.utility as util
-import nipype.interfaces.io as nio
-from utils import pickfirst, create_compcorr, \
-                  choose_susan, art_mean_workflow, \
-                  z_image, tolist, getmeanscale, \
-                  highpass_operand
+from utils import (pickfirst, create_compcorr, choose_susan, art_mean_workflow,
+                   z_image, tolist, getmeanscale, highpass_operand)
 
 
 def create_filter_matrix(motion_params, composite_norm,
@@ -47,14 +42,13 @@ def create_filter_matrix(motion_params, composite_norm,
 
     options = np.array([motion_params, composite_norm,
                         compcorr_components, art_outliers])
-    selector = np.array(selector)
+    selector = np.asarray(selector)
 
-    splitter = np.vectorize(lambda x: os.path.split(x)[1])
-    filenames = ['%s' % item for item in \
-                        splitter(options[selector[:-1]])]
-    filter_file = os.path.abspath("filter+%s+outliers.txt" %\
-                                  "+".join(filenames))
+    option_names = np.asarray(['motion', 'composite', 'compcor', 'art',
+                               'motion_deriv'])
 
+    filter_file = os.path.abspath('_'.join(option_names[selector].tolist()) +
+                                  '.txt')
     z = None
 
     for i, opt in enumerate(options[:-1][selector[:-2]]):
@@ -86,12 +80,11 @@ def create_filter_matrix(motion_params, composite_norm,
         out = z
 
     if selector[-1]:  # this is the motion_derivs bool
-            a = try_import(motion_params)
-            temp = np.zeros(a.shape)
-            temp[1:, :] = np.diff(a, axis=0)
-            out = np.hstack((out, temp))
+        a = try_import(motion_params)
+        temp = np.zeros(a.shape)
+        temp[1:, :] = np.diff(a, axis=0)
+        out = np.hstack((out, temp))
 
-    print out.shape
     np.savetxt(filter_file, out)
     return filter_file
 
@@ -134,6 +127,7 @@ def create_prep(name='preproc'):
     outputspec.mask :
     outputspec.reg_cost :
     outputspec.reg_file :
+    outputspec.reg_file_fsl :
     outputspec.noise_components :
     outputspec.tsnr_file :
     outputspec.stddev_file :
@@ -179,9 +173,9 @@ def create_prep(name='preproc'):
                            name='img2float')
 
     # define the motion correction node
-    motion_correct = pe.MapNode(interface=FmriRealign4d(),
-                                name='realign',
-                                iterfield=['in_file'])
+    motion_correct = pe.Node(interface=FmriRealign4d(),
+                             name='realign')
+                             #iterfield=['in_file'])
 
     # construct motion plots
     plot_motion = pe.MapNode(interface=fsl.PlotMotionParams(in_source='fsl'),
@@ -202,6 +196,7 @@ def create_prep(name='preproc'):
 
     # generate a freesurfer workflow that will return the mask
     getmask = create_getmask_flow()
+    getmask.inputs.register.out_fsl_file = True
 
     # create a SUSAN smoothing workflow, and smooth each run with
     # 75% of the median value for each run as the brightness
@@ -276,7 +271,7 @@ def create_prep(name='preproc'):
                     getmask, 'inputspec.subjects_dir')
     preproc.connect(inputnode, 'func',
                     img2float, 'in_file')
-    preproc.connect(img2float, ('out_file', tolist),
+    preproc.connect(img2float, 'out_file',
                     motion_correct, 'in_file')
     preproc.connect(motion_correct, ('par_file',pickfirst),
                     plot_motion, 'in_file')
@@ -345,6 +340,7 @@ def create_prep(name='preproc'):
                 'mask',
                 'reg_cost',
                 'reg_file',
+                'reg_file_fsl',
                 'noise_components',
                 'tsnr_file',
                 'stddev_file',
@@ -374,6 +370,8 @@ def create_prep(name='preproc'):
                     outputnode, 'mask')
     preproc.connect(getmask, 'outputspec.reg_file',
                     outputnode, 'reg_file')
+    preproc.connect(getmask, 'register.out_fsl_file',
+                    outputnode, 'reg_file_fsl')
     preproc.connect(getmask, 'outputspec.reg_cost',
                     outputnode, 'reg_cost')
     preproc.connect(choosesusan, 'cor_smoothed_files',

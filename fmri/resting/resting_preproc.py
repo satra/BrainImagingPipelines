@@ -3,8 +3,8 @@ import sys
 from config import *
 sys.path.append('..')
 
-from nipype.utils.config import config
-config.enable_debug_mode()
+#from nipype.utils.config import config
+#config.enable_debug_mode()
 
 import nipype.interfaces.utility as util    # utility
 import nipype.pipeline.engine as pe         # pypeline engine
@@ -51,8 +51,8 @@ def prep_workflow(subjects):
 
     sinkd = get_datasink(root_dir, fwhm)
     modelflow.connect(infosource, 'subject_id', sinkd, 'container')
-    modelflow.connect(infosource, ('subject_id', get_substitutions),
-                      sinkd, 'substitutions')
+    #modelflow.connect(infosource, ('subject_id', get_substitutions),
+    #                  sinkd, 'substitutions')
 
     # make connections
 
@@ -76,6 +76,8 @@ def prep_workflow(subjects):
                       sinkd, 'preproc.art.@stats')
     modelflow.connect(preproc, 'outputspec.reg_file',
                       sinkd, 'preproc.bbreg')
+    modelflow.connect(preproc, 'outputspec.reg_file_fsl',
+                      sinkd, 'preproc.bbreg@ref_fsl')
     modelflow.connect(preproc, 'outputspec.reg_cost',
                       sinkd, 'preproc.bbreg.@reg_cost')
     modelflow.connect(preproc, 'outputspec.highpassed_files',
@@ -104,6 +106,7 @@ def prep_workflow(subjects):
                 'mask',
                 'reg_cost',
                 'reg_file',
+                'reg_file_fsl',
                 'noise_components',
                 'tsnr_file',
                 'stddev_file',
@@ -132,6 +135,8 @@ def prep_workflow(subjects):
                       outputnode, 'combined_motion')
     modelflow.connect(preproc, 'outputspec.reg_file',
                       outputnode, 'reg_file')
+    modelflow.connect(preproc, 'outputspec.reg_file_fsl',
+                      outputnode, 'reg_file_fsl')
     modelflow.connect(preproc, 'outputspec.reg_cost',
                       outputnode, 'reg_cost')
     modelflow.connect(preproc, 'outputspec.highpassed_files',
@@ -150,7 +155,7 @@ if __name__ == "__main__":
     preprocess = prep_workflow(subjects)
     if run_on_grid:
         preprocess.run(plugin='PBS',
-                       plugin_args={'qsub_args': '-q many -l nodes=1:ppn=4'})
+                       plugin_args={'qsub_args': '-q max30 -l nodes=1:ppn=3'})
     else:
-        preprocess.run()
+        preprocess.run(plugin='MultiProc', plugin_args={'n_procs': 4})
 
