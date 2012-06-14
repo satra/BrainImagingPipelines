@@ -13,13 +13,9 @@ def mod_realign(node,in_file,tr,do_slicetime,sliceorder):
         realign = nipy.FmriRealign4d()
         realign.inputs.in_file = in_file
         realign.inputs.tr = tr
-        realign.inputs.interleaved= False
         if do_slicetime:
+            realign.inputs.time_interp = True
             realign.inputs.slice_order = sliceorder
-        else:
-            realign.inputs.time_interp = False
-            realign.inputs.slice_order = [0]
-
         res = realign.run()
         out_file = res.outputs.out_file
         par_file = res.outputs.par_file
