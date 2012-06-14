@@ -219,8 +219,6 @@ def prep_workflow(c):
     preproc.inputs.inputspec.do_slicetime = c.do_slicetiming
     if c.do_slicetiming:
         preproc.inputs.inputspec.sliceorder = c.SliceOrder
-    else:
-        preproc.inputs.inputspec.sliceorder = None
 
     preproc.inputs.inputspec.compcor_select = c.compcor_select
 

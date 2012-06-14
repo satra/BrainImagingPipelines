@@ -3,8 +3,7 @@ import nipype.interfaces.utility as util
 import nipype.interfaces.fsl as fsl
 
 
-def mod_realign(node,in_file,tr,do_slicetime,sliceorder,
-                nipy_dict={"loops": 5, "speedup": 5, "between_loops":None}):
+def mod_realign(node,in_file,tr,do_slicetime,sliceorder):
     import nipype.interfaces.fsl as fsl
     import nipype.interfaces.spm as spm
     import nipype.interfaces.nipy as nipy
@@ -14,9 +13,6 @@ def mod_realign(node,in_file,tr,do_slicetime,sliceorder,
         realign = nipy.FmriRealign4d()
         realign.inputs.in_file = in_file
         realign.inputs.tr = tr
-        realign.inputs.loops = nipy_dict["loops"]
-        realign.inputs.speedup = nipy_dict["speedup"]
-        realign.inputs.between_loops = nipy_dict["between_loops"]
         if do_slicetime:
             realign.inputs.slice_order = sliceorder
             realign.inputs.time_interp = True

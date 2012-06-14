@@ -87,11 +87,8 @@ class config(HasTraits):
     motion_correct_node = traits.Enum('nipy','fsl','spm','afni',
                                       desc="motion correction algorithm to use",
                                       usedefault=True,)
-    loops = traits.List([5],traits.Int(5),usedefault=True)
-    #between_loops = traits.Either("None",traits.List([5]),usedefault=True)
-    speedup = traits.List([5],traits.Int(5),usedefault=True)
+
     # Artifact Detection
-    
     norm_thresh = traits.Float(1, min=0, usedefault=True, desc="norm thresh for art")
     z_thresh = traits.Float(3, min=0, usedefault=True, desc="z thresh for art")
     
@@ -205,9 +202,6 @@ def create_view():
             Item(name='TR'),
             Item(name='do_slicetiming'),
             Item(name='SliceOrder', editor=CSVListEditor()),
-            Item(name='loops',enabled_when="motion_correct_node=='nipy' ", editor=CSVListEditor()),
-            #Item(name='between_loops',enabled_when="motion_correct_node=='nipy' "),
-            Item(name='speedup',enabled_when="motion_correct_node=='nipy' ", editor=CSVListEditor()),
             label='Motion Correction', show_border=True),
         Group(Item(name='norm_thresh'),
             Item(name='z_thresh'),
@@ -319,9 +313,6 @@ def prep_workflow(c):
 
     preproc.inputs.inputspec.motion_correct_node = c.motion_correct_node
 
-    preproc.inputs.inputspec.nipy_realign_parameters = {"loops":c.loops,
-                                                        "between_loops":None,
-                                                        "speedup":c.speedup}
     preproc.inputs.inputspec.timepoints_to_remove = c.timepoints_to_remove
     preproc.inputs.inputspec.smooth_type = c.smooth_type
     preproc.inputs.inputspec.surface_fwhm = c.surface_fwhm

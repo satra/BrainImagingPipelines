@@ -158,6 +158,8 @@ def extract_noise_components(realigned_file, noise_mask_file, num_components,
         noise_mask_file = options[selector][0]
         noise_mask = load(noise_mask_file)
         voxel_timecourses = imgseries.get_data()[np.nonzero(noise_mask.get_data())]
+    voxel_timecourses = voxel_timecourses.byteswap().newbyteorder()
+    voxel_timecourses[np.isnan(np.sum(voxel_timecourses,axis=1)),:] = 0
     if regress_before_PCA:
         logger.debug('Regressing motion')
         for timecourse in voxel_timecourses:
@@ -165,9 +167,6 @@ def extract_noise_components(realigned_file, noise_mask_file, num_components,
             coef_, _, _, _ = np.linalg.lstsq(nuisance_matrix, timecourse[:, None])
             timecourse[:] = (timecourse[:, None] - np.dot(nuisance_matrix,
                                                           coef_)).ravel()
-
-    voxel_timecourses = voxel_timecourses.byteswap().newbyteorder()
-    voxel_timecourses[np.isnan(np.sum(voxel_timecourses,axis=1)),:] = 0
     _, _, v = sp.linalg.svd(voxel_timecourses, full_matrices=False)
     components_file = os.path.join(os.getcwd(), 'noise_components.txt')
     np.savetxt(components_file, v[:num_components, :].T)
