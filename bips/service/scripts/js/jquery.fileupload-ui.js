@@ -150,7 +150,8 @@
                         that._transition($(this)).done(
                             function () {
                                 var node = $(this);
-                                template = that._renderDownload([file])
+                                console.log(file);
+                                template = that._renderDownload(file)
                                     .css('height', node.height())
                                     .replaceAll(node);
                                 that._forceReflow(template);

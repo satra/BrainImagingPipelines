@@ -32,13 +32,13 @@ $(function () {
         // Demo settings:
         $('#fileupload').fileupload('option', {
             url: '//bips.incf.org:8080/uploadhandler',
-            maxFileSize: 100000000,
-            acceptFileTypes: /(\.|\/)(nii|nii.gz)$/i,
+            maxFileSize: 10000000000,
+            acceptFileTypes: /(\.|\/)(nii|nii.gz|zip|tar.gz|.tgz)$/i,
             process: [
                 {
                     action: 'load',
-                    fileTypes: /^image\/(nii|nii.gz)$/,
-                    maxFileSize: 100000000 // 20MB
+                    fileTypes: /^image\/(nii|nii.gz|zip|tar.gz|.tgz)$/,
+                    maxFileSize: 10000000000 // 20MB
                 },
                 {
                     action: 'resize',
