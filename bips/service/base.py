@@ -193,7 +193,7 @@ class BIPS(object):
                             "name": info['name'],
                             "metaname": info['metapath'],
                             'error': info['err_status'] == 'err',
-                            "size": ' '.join([str(val) for val in info['size']]),
+                            "size": ' x '.join([str(val) for val in info['size']]),
                             "url": "%sfiles\/%s" % (url_prefix, info['filepath']),
                             "metaurl": "%sfiles\/%s" % (url_prefix, info['metapath']),
                             "delete_url": "%sdeletehandler?file=%s" % (url_prefix, info['filepath']),
@@ -201,7 +201,7 @@ class BIPS(object):
                 })
             out = [out]
         else:
-            out = [{}]
+            out = {}
         print 'out', out
         cherrypy.response.headers['Content-Type'] = 'application/json'
         return json.dumps(out)
