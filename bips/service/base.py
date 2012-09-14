@@ -169,7 +169,7 @@ class BIPS(object):
         else:
             out = {}
         cherrypy.response.headers['Content-Type'] = 'application/json'
-        return json.dumps([out])
+        return json.dumps([[out]])
 
     @expose
     def dicomuploadhandler(self, **kwargs):
